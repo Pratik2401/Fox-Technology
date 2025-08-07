@@ -6,49 +6,43 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Manage Members - Library Management</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../styles/main.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 
-<body class="bg-light">
-    <div class="container-fluid py-4">
-        <!-- Header Section -->
+<body>
+    <div class="container py-4">
         <div class="page-header">
             <div class="container">
                 <div class="row align-items-center">
-                    <div class="col">
-                        <h2 class="page-title">
-                            <i class="bi bi-people-fill me-2"></i>
-                            Members Management
-                        </h2>
-                        <p class="mb-0 opacity-75">Manage your library members and their information</p>
-                    </div>
                     <div class="col-auto">
                         <a href="ManageDashboard.html" class="btn btn-light btn-sm">
-                            <i class="bi bi-arrow-left me-1"></i>Back to Dashboard
+                            Back to Dashboard
                         </a>
                     </div>
+                    <div class="col">
+                        <h2 class="page-title">
+                            Members Management
+                        </h2>
+
+                    </div>
+
                 </div>
             </div>
         </div>
 
+
         <div class="container">
-            <!-- Action Buttons -->
+
             <div class="action-buttons">
                 <div class="row">
                     <div class="col-md-6">
-                        <button class="btn btn-primary" onclick="showAddForm()">
-                            <i class="bi bi-person-plus me-1"></i>Add New Member
-                        </button>
-                        <button class="btn btn-outline-secondary" onclick="loadMembers()">
-                            <i class="bi bi-arrow-clockwise me-1"></i>Refresh
-                        </button>
+                        <button class="btn btn-primary" onclick="showAddForm()">Add New Member</button>
+                        <button class="btn btn-secondary" onclick="loadMembers()">Refresh</button>
                     </div>
                     <div class="col-md-6 text-end">
                         <div class="d-flex justify-content-end gap-2">
                             <div class="input-group" style="max-width: 300px;">
-                                <span class="input-group-text"><i class="bi bi-search"></i></span>
                                 <input type="text" class="form-control" id="search_members" placeholder="Search members...">
                             </div>
                         </div>
@@ -56,11 +50,9 @@
                 </div>
             </div>
 
-            <!-- Add/Edit Form -->
             <div id="add_form" class="card mb-4" style="display: none;">
                 <div class="card-header">
                     <h5 class="mb-0">
-                        <i class="bi bi-person me-2"></i>
                         <span id="form_title">Add New Member</span>
                     </h5>
                 </div>
@@ -70,73 +62,52 @@
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="member_name" class="form-label">
-                                        <i class="bi bi-person-fill me-1"></i>Name *
-                                    </label>
-                                    <input type="text" class="form-control" id="member_name" required 
-                                           placeholder="Enter member name">
+                                    <label for="member_name" class="form-label">Name *</label>
+                                    <input type="text" class="form-control" id="member_name" required placeholder="Enter member name">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="member_email" class="form-label">
-                                        <i class="bi bi-envelope-fill me-1"></i>Email *
-                                    </label>
-                                    <input type="email" class="form-control" id="member_email" required 
-                                           placeholder="Enter email address">
+                                    <label for="member_email" class="form-label">Email *</label>
+                                    <input type="email" class="form-control" id="member_email" required placeholder="Enter email address">
                                 </div>
                             </div>
                         </div>
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="member_phone" class="form-label">
-                                        <i class="bi bi-telephone-fill me-1"></i>Phone
-                                    </label>
-                                    <input type="tel" class="form-control" id="member_phone" 
-                                           placeholder="Enter phone number">
+                                    <label for="member_phone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="member_phone" placeholder="Enter phone number">
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="mb-3">
-                                    <label for="membership_fee" class="form-label">
-                                        <i class="bi bi-currency-dollar me-1"></i>Membership Fee
-                                    </label>
+                                    <label for="membership_fee" class="form-label">Membership Fee</label>
                                     <div class="input-group">
                                         <span class="input-group-text">Rs.</span>
-                                        <input type="number" class="form-control" id="membership_fee" step="0.01" 
-                                               placeholder="0.00">
+                                        <input type="number" class="form-control" id="membership_fee" step="0.01" placeholder="0.00">
                                     </div>
                                 </div>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label for="member_address" class="form-label">
-                                <i class="bi bi-geo-alt-fill me-1"></i>Address
-                            </label>
-                            <textarea class="form-control" id="member_address" rows="3" 
-                                      placeholder="Enter address (optional)"></textarea>
+                            <label for="member_address" class="form-label">Address</label>
+                            <textarea class="form-control" id="member_address" rows="3" placeholder="Enter address (optional)"></textarea>
                         </div>
                         <div class="d-flex gap-2">
-                            <button type="submit" class="btn btn-success">
-                                <i class="bi bi-check-circle me-1"></i>Save Member
-                            </button>
-                            <button type="button" class="btn btn-secondary" onclick="hideAddForm()">
-                                <i class="bi bi-x-circle me-1"></i>Cancel
-                            </button>
+                            <button type="submit" class="btn btn-success">Save Member</button>
+                            <button type="button" class="btn btn-secondary" onclick="hideAddForm()">Cancel</button>
                         </div>
                     </form>
                 </div>
             </div>
 
-            <!-- Members Table -->
+
             <div class="card">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">
-                            <i class="bi bi-table me-2"></i>Members List
-                        </h5>
-                        <span class="badge bg-primary" id="total_members">0 members</span>
+                        <h5 class="mb-0">Members List</h5>
+                        <span id="total_members">0 members</span>
                     </div>
                 </div>
                 <div class="card-body p-0">
@@ -155,14 +126,6 @@
                                 </tr>
                             </thead>
                             <tbody id="members_table">
-                                <tr>
-                                    <td colspan="8" class="text-center py-4">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                        <p class="mt-2 mb-0 text-muted">Loading members...</p>
-                                    </td>
-                                </tr>
                             </tbody>
                         </table>
                     </div>
@@ -170,8 +133,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Templates -->
     <template id="member_row_template">
         <tr>
             <td class="member-id fw-bold"></td>
@@ -190,13 +151,10 @@
 
     <template id="no_members_template">
         <tr>
-            <td colspan="8" class="empty-state">
-                <i class="bi bi-people"></i>
+            <td colspan="8" class="text-center py-4">
                 <h5 class="mt-3">No members found</h5>
                 <p class="text-muted">Add your first member to start building your library community.</p>
-                <button class="btn btn-primary" onclick="showAddForm()">
-                    <i class="bi bi-person-plus me-1"></i>Add First Member
-                </button>
+                <button class="btn btn-primary" onclick="showAddForm()">Add First Member</button>
             </td>
         </tr>
     </template>

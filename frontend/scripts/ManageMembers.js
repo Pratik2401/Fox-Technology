@@ -7,6 +7,14 @@ $(document).ready(function() {
     });
 });
 
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 function loadMembers() {
     $.ajax({
         url: 'http://localhost:3000/api/members',
@@ -33,14 +41,14 @@ function renderMembersTable() {
                 const $row = $($('#member_row_template').html());
                 const lostAmount = member.lost_book_fee_amount || 0;
                 const feeStatus = member.fee_paid_status ? 'Paid' : 'Pending';
-                const feeStatusClass = member.fee_paid_status ? 'text-success' : 'text-warning';
+                const feeStatusClass = member.fee_paid_status ? 'status-available' : 'status-pending';
 
                 $row.find('.member-id').text(member.member_id);
                 $row.find('.member-name').text(member.name);
                 $row.find('.member-email').text(member.email);
                 $row.find('.member-phone').text(member.phone || 'N/A');
                 $row.find('.member-fee').text(`Rs.${member.membership_fee || 0}`);
-                $row.find('.member-lost-amount').html(`<span class="${lostAmount > 0 ? 'text-danger' : 'text-success'}">Rs.${lostAmount}</span>`);
+                $row.find('.member-lost-amount').html(`<span class="${lostAmount > 0 ? 'status-lost' : 'status-available'}">Rs.${lostAmount}</span>`);
                 $row.find('.member-fee-status').html(`<span class="${feeStatusClass}">${feeStatus}</span>`);
                 $row.find('.member-actions').html(`
       <button class="btn btn-sm btn-info" onclick="viewMemberDetails(${member.member_id})">View</button>
@@ -182,7 +190,7 @@ function viewMemberDetails(id) {
     url: `http://localhost:3000/api/members/${id}`,
     method: 'GET',
     success: function(member) {
-      const registerDate = new Date(member.register_date).toLocaleDateString();
+      const registerDate = formatDate(member.register_date);
       const lostAmount = member.lost_book_fee_amount || 0;
       const feeStatus = member.fee_paid_status ? 'Paid' : 'Pending';
       const feeStatusClass = member.fee_paid_status ? 'text-success' : 'text-warning';

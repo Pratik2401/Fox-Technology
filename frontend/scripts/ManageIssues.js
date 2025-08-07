@@ -8,6 +8,14 @@ $(document).ready(function() {
     });
 });
 
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
 function setMinDate() {
     const today = new Date().toISOString().split('T')[0];
     $('#return_date').attr('min', today);
@@ -31,12 +39,12 @@ function updateIssue() {
 
     const bookId = $('#edit_book_select').val();
     const memberId = $('#edit_member_select').val();
-    
+
     if (!bookId || !memberId) {
         Swal.fire('Error!', 'Please select both book and member', 'error');
         return;
     }
-    
+
     const issueData = {
         book_id: bookId,
         member_id: memberId,
@@ -187,17 +195,17 @@ function loadIssues() {
                 let status, statusClass;
                 if (issue.return_status) {
                     status = 'Returned';
-                    statusClass = 'text-success';
+                    statusClass = 'status-returned';
                 } else if (issue.lost_status) {
                     status = 'Lost';
-                    statusClass = 'text-danger';
+                    statusClass = 'status-lost';
                 } else {
                     status = 'Issued';
-                    statusClass = 'text-warning';
+                    statusClass = 'status-issued';
                 }
 
-                const returnDate = issue.return_date ? new Date(issue.return_date).toLocaleDateString() : 'N/A';
-                const issueDate = new Date(issue.issue_date).toLocaleDateString();
+                const returnDate = issue.return_date ? formatDate(issue.return_date) : 'N/A';
+                const issueDate = formatDate(issue.issue_date);
 
                 $row.find('.issue-id').text(issue.issue_id);
                 $row.find('.issue-book').text(issue.book_name);
@@ -364,15 +372,99 @@ function markPaymentDone(issueId) {
     });
 }
 
+function showAddBookPopup() {
+    $('#addBookModal').modal('show');
+}
+
+function showAddMemberPopup() {
+    $('#addMemberModal').modal('show');
+}
+
+function addNewBook() {
+    const name = $('#new_book_name').val().trim();
+    const author = $('#new_book_author').val().trim();
+    const price = $('#new_book_price').val();
+
+    if (!name) {
+        Swal.fire('Error!', 'Book name is required', 'error');
+        return;
+    }
+
+    const bookData = {
+        name: name,
+        author: author,
+        price: price
+    };
+
+    $.ajax({
+        url: 'http://localhost:3000/api/books',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(bookData),
+        success: function(response) {
+            Swal.fire('Success!', 'Book added successfully!', 'success');
+            $('#addBookModal').modal('hide');
+            $('#add_book_form')[0].reset();
+            loadBooksForIssue();
+            $('#book_select').val(response.id);
+        },
+        error: function() {
+            Swal.fire('Error!', 'Error adding book', 'error');
+        }
+    });
+}
+
+function addNewMember() {
+    const name = $('#new_member_name').val().trim();
+    const email = $('#new_member_email').val().trim();
+    const phone = $('#new_member_phone').val().trim();
+    const fee = $('#new_membership_fee').val();
+
+    if (!name) {
+        Swal.fire('Error!', 'Name is required', 'error');
+        return;
+    }
+
+    if (!email) {
+        Swal.fire('Error!', 'Email is required', 'error');
+        return;
+    }
+
+    const memberData = {
+        name: name,
+        email: email,
+        phone: phone,
+        address: $('#new_member_address').val(),
+        membership_fee: fee
+    };
+
+    $.ajax({
+        url: 'http://localhost:3000/api/members',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(memberData),
+        success: function(response) {
+            Swal.fire('Success!', 'Member added successfully!', 'success');
+            $('#addMemberModal').modal('hide');
+            $('#add_member_form')[0].reset();
+            loadMembersForIssue();
+            $('#member_select').val(response.id);
+        },
+        error: function() {
+            Swal.fire('Error!', 'Error adding member', 'error');
+        }
+    });
+}
+
 function viewIssueDetails(issueId) {
     console.log('Viewing issue details for ID:', issueId);
     $.ajax({
                 url: `http://localhost:3000/api/issues/${issueId}`,
                 method: 'GET',
                 success: function(issue) {
-                        const issueDate = new Date(issue.issue_date).toLocaleDateString();
-                        const returnDate = issue.return_date ? new Date(issue.return_date).toLocaleDateString() : 'N/A';
-                        const actualReturnDate = issue.actual_return_date ? new Date(issue.actual_return_date).toLocaleDateString() : 'N/A';
+                        const issueDate = formatDate(issue.issue_date);
+                        const returnDate = issue.return_date ? formatDate(issue.return_date) : 'N/A';
+                        const actualReturnDate = issue.actual_return_date ? formatDate(issue.actual_return_date) : 'N/A';
 
                         let status, statusClass;
                         if (issue.return_status) {

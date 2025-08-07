@@ -6,12 +6,19 @@ $(document).ready(function() {
         saveBook();
     });
 
-    // Search functionality
     $('#search_books').on('keyup', function() {
         const searchTerm = $(this).val().toLowerCase();
         filterBooks(searchTerm);
     });
 });
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
 
 function loadBooks() {
     $.ajax({
@@ -34,12 +41,12 @@ function updateBookCount(count) {
 
 function filterBooks(searchTerm) {
     if (!window.booksData) return;
-    
-    const filteredBooks = window.booksData.filter(book => 
+
+    const filteredBooks = window.booksData.filter(book =>
         book.name.toLowerCase().includes(searchTerm) ||
         (book.author && book.author.toLowerCase().includes(searchTerm))
     );
-    
+
     renderBooksTable(filteredBooks);
 }
 
@@ -55,50 +62,38 @@ function renderBooksTable(books) {
 
     books.forEach(book => {
         const $row = $($('#book_row_template').html());
-        let status, statusClass, statusIcon;
-        
+        let status, statusClass;
+
         if (book.lost_status) {
             status = 'Lost';
-            statusClass = 'danger';
-            statusIcon = 'exclamation-triangle-fill';
+            statusClass = 'status-lost';
         } else if (book.issued_status) {
             status = 'Issued';
-            statusClass = 'warning';
-            statusIcon = 'arrow-right-circle-fill';
+            statusClass = 'status-issued';
         } else {
             status = 'Available';
-            statusClass = 'success';
-            statusIcon = 'check-circle-fill';
+            statusClass = 'status-available';
         }
-        
+
         const paymentStatus = book.payment_status || 'Not Lost';
-        const paymentClass = paymentStatus === 'Pending' ? 'warning' : 'success';
-        const paymentIcon = paymentStatus === 'Pending' ? 'clock-fill' : 'check-circle-fill';
+        const paymentClass = paymentStatus === 'Pending' ? 'status-pending' : 'status-available';
 
         $row.find('.book-id').text(book.book_id);
         $row.find('.book-name').text(book.name);
         $row.find('.book-author').text(book.author || 'N/A');
         $row.find('.book-price').text(`Rs.${book.price || 0}`);
-        $row.find('.book-status').html(`
-            <span class="badge bg-${statusClass}">
-                <i class="bi bi-${statusIcon} me-1"></i>${status}
-            </span>
-        `);
-        $row.find('.book-payment-status').html(`
-            <span class="badge bg-${paymentClass}">
-                <i class="bi bi-${paymentIcon} me-1"></i>${paymentStatus}
-            </span>
-        `);
-        
+        $row.find('.book-status').html(`<span class="${statusClass}">${status}</span>`);
+        $row.find('.book-payment-status').html(`<span class="${paymentClass}">${paymentStatus}</span>`);
+
         const actionsHtml = `
             <button class="btn btn-sm btn-outline-info" onclick="viewBookDetails(${book.book_id})" title="View Details">
-                <i class="bi bi-eye"></i>
+                View
             </button>
             <button class="btn btn-sm btn-outline-warning" onclick="editBook(${book.book_id})" title="Edit Book">
-                <i class="bi bi-pencil"></i>
+                Edit
             </button>
         `;
-        
+
         $row.find('.book-actions .btn-group').html(actionsHtml);
         $tbody.append($row);
     });
@@ -121,17 +116,17 @@ function saveBook() {
     const name = $('#book_name').val().trim();
     const author = $('#book_author').val().trim();
     const price = $('#book_price').val();
-    
+
     if (!name) {
         Swal.fire('Error!', 'Book name is required', 'error');
         return;
     }
-    
+
     if (price && (isNaN(price) || price < 0)) {
         Swal.fire('Error!', 'Price must be a valid positive number', 'error');
         return;
     }
-    
+
     const bookData = {
         name: name,
         author: author,
@@ -148,8 +143,8 @@ function saveBook() {
         data: JSON.stringify(bookData),
         success: function() {
             Swal.fire({
-                title: 'Success!', 
-                text: bookId ? 'Book updated successfully!' : 'Book added successfully!', 
+                title: 'Success!',
+                text: bookId ? 'Book updated successfully!' : 'Book added successfully!',
                 icon: 'success',
                 timer: 1500,
                 showConfirmButton: false
@@ -191,9 +186,9 @@ function viewBookDetails(id) {
         url: `http://localhost:3000/api/books/${id}`,
         method: 'GET',
         success: function(book) {
-            const registerDate = new Date(book.register_date).toLocaleDateString();
+            const registerDate = formatDate(book.register_date);
             let status, statusClass, statusIcon;
-            
+
             if (book.lost_status) {
                 status = 'Lost';
                 statusClass = 'text-danger';
@@ -425,7 +420,7 @@ function viewBookDetails(id) {
         url: `http://localhost:3000/api/books/${id}`,
         method: 'GET',
         success: function(book) {
-            const registerDate = new Date(book.register_date).toLocaleDateString();
+            const registerDate = formatDate(book.register_date);
             let status, statusClass;
             if (book.lost_status) {
                 status = 'Lost';

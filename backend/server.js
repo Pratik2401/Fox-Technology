@@ -3,6 +3,7 @@ const cors = require('cors');
 const memberRoutes = require('./routes/memberRoutes');
 const bookRoutes = require('./routes/bookRoutes');
 const issueRoutes = require('./routes/issueRoutes');
+const errorHandler = require('./middleware/errorhandlingMiddleware');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -13,6 +14,8 @@ app.use(express.json());
 app.use('/api/members', memberRoutes);
 app.use('/api/books', bookRoutes);
 app.use('/api/issues', issueRoutes);
+
+app.use(errorHandler);
 
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);

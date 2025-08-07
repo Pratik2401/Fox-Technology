@@ -44,7 +44,7 @@ const bookController = {
   /**
    * @desc Add new book to library collection
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const { name, price, author } = req.body;
       
@@ -62,7 +62,7 @@ const bookController = {
       );
       res.status(201).json({ id: insertResult.insertId });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   },
 

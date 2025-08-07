@@ -68,7 +68,7 @@ const memberController = {
   /**
    * @desc Register new library member
    */
-  async create(req, res) {
+  async create(req, res, next) {
     try {
       const { name, email, phone, address, membership_fee } = req.body;
 
@@ -95,18 +95,14 @@ const memberController = {
       );
       res.status(201).json({ id: insertResult.insertId });
     } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ error: 'Email address already registered' });
-      } else {
-        res.status(500).json({ error: err.message });
-      }
+      next(err);
     }
   },
 
   /**
    * @desc Update existing member information
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
       const { name, email, phone, address, membership_fee } = req.body;
@@ -126,11 +122,7 @@ const memberController = {
 
       res.json({ message: 'Member information updated successfully' });
     } catch (err) {
-      if (err.code === 'ER_DUP_ENTRY') {
-        res.status(400).json({ error: 'Email address already registered' });
-      } else {
-        res.status(500).json({ error: err.message });
-      }
+      next(err);
     }
   },
 
