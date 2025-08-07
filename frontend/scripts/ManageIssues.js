@@ -179,7 +179,6 @@ function issueBook() {
         data: JSON.stringify(issueData),
         success: function() {
             Swal.fire('Success!', 'Book issued successfully!', 'success');
-            // Hide both modal and card form
             $('#issueModal').modal('hide');
             hideIssueForm();
             $('#issue_form')[0].reset();
@@ -321,7 +320,6 @@ function editIssue(issueId) {
             $('#edit_lost_status').prop('checked', issue.lost_status);
             $('#edit_lost_reason').val(issue.lost_reason || '');
 
-            // Show/hide return date field based on lost status
             if (issue.lost_status) {
                 $('#edit_return_date').closest('.mb-3').hide();
                 $('#edit_return_date').removeAttr('required');

@@ -404,7 +404,6 @@ function editBook(id) {
         method: 'GET',
         success: function(book) {
             console.log('Book data received:', book);
-            // Show form first, then populate with data
             $('#add_form').show();
             $('#book_id').val(book.book_id);
             $('#book_name').val(book.name);
