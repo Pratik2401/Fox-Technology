@@ -25,16 +25,19 @@ function setMinDate() {
 function updateIssue() {
     const issueId = $('#edit_issue_id').val();
     const returnDate = $('#edit_return_date').val();
+    const isReturnDateVisible = $('#edit_return_date').closest('.mb-3').is(':visible');
 
-    if (!returnDate) {
-        Swal.fire('Error!', 'Return date is required', 'error');
-        return;
-    }
+    if (isReturnDateVisible) {
+        if (!returnDate) {
+            Swal.fire('Error!', 'Return date is required', 'error');
+            return;
+        }
 
-    const today = new Date().toISOString().split('T')[0];
-    if (returnDate < today) {
-        Swal.fire('Error!', 'Return date cannot be in the past', 'error');
-        return;
+        const today = new Date().toISOString().split('T')[0];
+        if (returnDate < today) {
+            Swal.fire('Error!', 'Return date cannot be in the past', 'error');
+            return;
+        }
     }
 
     const bookId = $('#edit_book_select').val();
@@ -48,7 +51,9 @@ function updateIssue() {
     const issueData = {
         book_id: bookId,
         member_id: memberId,
-        return_date: returnDate,
+        return_date: isReturnDateVisible ? returnDate : null,
+        actual_return_date: $('#edit_actual_return_date').val() || null,
+        lost_status: $('#edit_lost_status').is(':checked'),
         lost_reason: $('#edit_lost_reason').val()
     };
 
@@ -65,8 +70,9 @@ function updateIssue() {
                 window.location.reload();
             }, 1500);
         },
-        error: function() {
-            Swal.fire('Error!', 'Error updating issue', 'error');
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error updating issue';
+            Swal.fire('Error!', errorMsg, 'error');
         }
     });
 }
@@ -76,6 +82,18 @@ function showIssueModal() {
     loadMembersForIssue();
     setMinDate();
     $('#issueModal').modal('show');
+}
+
+function showIssueForm() {
+    loadBooksForIssue();
+    loadMembersForIssue();
+    setMinDate();
+    $('#issue_form_card').show();
+}
+
+function hideIssueForm() {
+    $('#issue_form_card').hide();
+    $('#issue_form')[0].reset();
 }
 
 function loadBooksForIssue() {
@@ -161,15 +179,18 @@ function issueBook() {
         data: JSON.stringify(issueData),
         success: function() {
             Swal.fire('Success!', 'Book issued successfully!', 'success');
+            // Hide both modal and card form
             $('#issueModal').modal('hide');
+            hideIssueForm();
             $('#issue_form')[0].reset();
             loadIssues();
             setTimeout(() => {
                 window.location.reload();
             }, 1500);
         },
-        error: function() {
-            Swal.fire('Error!', 'Error issuing book', 'error');
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error issuing book';
+            Swal.fire('Error!', errorMsg, 'error');
         }
     });
 }
@@ -204,6 +225,14 @@ function loadIssues() {
                     statusClass = 'status-issued';
                 }
 
+                let paymentStatus = '-';
+                let paymentStatusClass = '';
+                if (issue.lost_status) {
+
+                    paymentStatus = issue.payment_status || 'Pending';
+                    paymentStatusClass = (paymentStatus === 'Pending') ? 'status-pending' : 'status-paid';
+                }
+
                 const returnDate = issue.return_date ? formatDate(issue.return_date) : 'N/A';
                 const issueDate = formatDate(issue.issue_date);
 
@@ -213,6 +242,7 @@ function loadIssues() {
                 $row.find('.issue-date').text(issueDate);
                 $row.find('.issue-return-date').text(returnDate);
                 $row.find('.issue-status').html(`<span class="${statusClass}">${status}</span>`);
+                $row.find('.issue-payment-status').html(`<span class="${paymentStatusClass}">${paymentStatus}</span>`);
 
                 if (!issue.return_status && !issue.lost_status) {
                     $row.find('.issue-actions').html(`
@@ -222,15 +252,19 @@ function loadIssues() {
             <button class="btn btn-sm btn-danger" onclick="markLost(${issue.issue_id})">Mark Lost</button>
           `);
                 } else if (issue.lost_status) {
+                    const currentPaymentStatus = issue.payment_status || 'Pending';
+                    const paymentButton = (currentPaymentStatus === 'Pending') ?
+                        `<button class="btn btn-sm btn-success" onclick="markPaymentDone(${issue.issue_id})">Payment Done</button>` :
+                        ``;
+
                     $row.find('.issue-actions').html(`
             <button class="btn btn-sm btn-info me-1" onclick="viewIssueDetails(${issue.issue_id})">View</button>
             <button class="btn btn-sm btn-warning me-1" onclick="editLostIssue(${issue.issue_id})">Edit</button>
-            <button class="btn btn-sm btn-success" onclick="markPaymentDone(${issue.issue_id})">Payment Done</button>
+            ${paymentButton}
           `);
                 } else {
                     $row.find('.issue-actions').html(`
             <button class="btn btn-sm btn-info me-1" onclick="viewIssueDetails(${issue.issue_id})">View</button>
-            <span class="text-muted">Completed</span>
           `);
                 }
 
@@ -261,8 +295,9 @@ function returnBook(issueId) {
                     Swal.fire('Success!', 'Book returned successfully!', 'success');
                     loadIssues();
                 },
-                error: function() {
-                    Swal.fire('Error!', 'Error returning book', 'error');
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error returning book';
+                    Swal.fire('Error!', errorMsg, 'error');
                 }
             });
         }
@@ -282,7 +317,19 @@ function editIssue(issueId) {
             $('#edit_book_select').val(issue.book_id);
             $('#edit_member_select').val(issue.member_id);
             $('#edit_return_date').val(issue.return_date ? issue.return_date.split('T')[0] : '');
+            $('#edit_actual_return_date').val(issue.actual_return_date ? issue.actual_return_date.split('T')[0] : '');
+            $('#edit_lost_status').prop('checked', issue.lost_status);
             $('#edit_lost_reason').val(issue.lost_reason || '');
+
+            // Show/hide return date field based on lost status
+            if (issue.lost_status) {
+                $('#edit_return_date').closest('.mb-3').hide();
+                $('#edit_return_date').removeAttr('required');
+            } else {
+                $('#edit_return_date').closest('.mb-3').show();
+                $('#edit_return_date').attr('required', true);
+            }
+
             setMinDate();
             $('#edit_form').show();
         },
@@ -295,6 +342,7 @@ function editIssue(issueId) {
 
 function hideEditForm() {
     $('#edit_return_date').closest('.mb-3').show();
+    $('#edit_return_date').attr('required', true);
     $('#edit_form').hide();
 }
 
@@ -322,8 +370,9 @@ function markLost(issueId) {
                     Swal.fire('Success!', 'Book marked as lost successfully!', 'success');
                     loadIssues();
                 },
-                error: function() {
-                    Swal.fire('Error!', 'Error marking book as lost', 'error');
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error marking book as lost';
+                    Swal.fire('Error!', errorMsg, 'error');
                 }
             });
         }
@@ -331,12 +380,19 @@ function markLost(issueId) {
 }
 
 function editLostIssue(issueId) {
+    loadBooksForEdit();
+    loadMembersForEdit();
     $.ajax({
         url: `http://localhost:3000/api/issues/${issueId}`,
         method: 'GET',
         success: function(issue) {
             $('#edit_issue_id').val(issue.issue_id);
+            $('#edit_book_select').val(issue.book_id);
+            $('#edit_member_select').val(issue.member_id);
             $('#edit_return_date').closest('.mb-3').hide();
+            $('#edit_return_date').removeAttr('required');
+            $('#edit_actual_return_date').val(issue.actual_return_date ? issue.actual_return_date.split('T')[0] : '');
+            $('#edit_lost_status').prop('checked', issue.lost_status);
             $('#edit_lost_reason').val(issue.lost_reason || '');
             setMinDate();
             $('#edit_form').show();
@@ -364,8 +420,9 @@ function markPaymentDone(issueId) {
                     Swal.fire('Success!', 'Payment marked as done successfully!', 'success');
                     loadIssues();
                 },
-                error: function() {
-                    Swal.fire('Error!', 'Error marking payment as done', 'error');
+                error: function(xhr) {
+                    const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error marking payment as done';
+                    Swal.fire('Error!', errorMsg, 'error');
                 }
             });
         }
@@ -408,8 +465,9 @@ function addNewBook() {
             loadBooksForIssue();
             $('#book_select').val(response.id);
         },
-        error: function() {
-            Swal.fire('Error!', 'Error adding book', 'error');
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error adding book';
+            Swal.fire('Error!', errorMsg, 'error');
         }
     });
 }
@@ -450,8 +508,9 @@ function addNewMember() {
             loadMembersForIssue();
             $('#member_select').val(response.id);
         },
-        error: function() {
-            Swal.fire('Error!', 'Error adding member', 'error');
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error adding member';
+            Swal.fire('Error!', errorMsg, 'error');
         }
     });
 }
@@ -515,6 +574,12 @@ function viewIssueDetails(issueId) {
           <div class="col-md-6"><strong>Lost Status:</strong></div>
           <div class="col-md-6">${issue.lost_status ? 'Yes' : 'No'}</div>
         </div>
+        ${issue.lost_status ? `
+        <div class="row mt-2">
+          <div class="col-md-6"><strong>Payment Status:</strong></div>
+          <div class="col-md-6"><span class="${(issue.payment_status || 'Pending') === 'Pending' ? 'text-warning' : 'text-success'}">${issue.payment_status || 'Pending'}</span></div>
+        </div>
+        ` : ''}
         ${issue.lost_reason ? `
         <div class="row mt-2">
           <div class="col-md-6"><strong>Lost Reason:</strong></div>

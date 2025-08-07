@@ -243,6 +243,31 @@ body {
     font-weight: normal;
 }
 
+.status-paid {
+    color: #28a745;
+    font-weight: normal;
+}
+
+.status-issued {
+    color: #ffc107;
+    font-weight: normal;
+}
+
+.status-returned {
+    color: #28a745;
+    font-weight: normal;
+}
+
+.status-lost {
+    color: #dc3545;
+    font-weight: normal;
+}
+
+.status-available {
+    color: #28a745;
+    font-weight: normal;
+}
+
 
 /* Simple Modal */
 

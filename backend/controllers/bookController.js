@@ -6,7 +6,7 @@ const bookController = {
    */
   async getAll(req, res) {
     try {
-      const [rows] = await db.execute('SELECT * FROM books ORDER BY book_id DESC');
+      const [rows] = await db.execute('SELECT * FROM books ORDER BY book_id ASC');
       res.json(rows);
     } catch (error) {
       res.status(500).json({ error: error.message });
@@ -56,9 +56,15 @@ const bookController = {
         return res.status(400).json({ error: 'Price must be valid positive number' });
       }
       
+      // Check for duplicate book name
+      const [existing] = await db.execute('SELECT book_id FROM books WHERE name = ?', [name.trim()]);
+      if (existing.length > 0) {
+        return res.status(400).json({ error: 'Book name already exists' });
+      }
+      
       const [insertResult] = await db.execute(
         'INSERT INTO books (name, price, author, register_date, issued_status, lost_status, payment_status) VALUES (?, ?, ?, CURRENT_TIMESTAMP, 0, 0, "Not Lost")',
-        [name, price || 0, author || '']
+        [name.trim(), price || 0, author || '']
       );
       res.status(201).json({ id: insertResult.insertId });
     } catch (err) {
@@ -69,7 +75,7 @@ const bookController = {
   /**
    * @desc Update existing book information
    */
-  async update(req, res) {
+  async update(req, res, next) {
     try {
       const { id } = req.params;
       const { name, price, author } = req.body;
@@ -78,9 +84,15 @@ const bookController = {
         return res.status(400).json({ error: 'Book title is required' });
       }
       
+      // Check for duplicate book name (excluding current book)
+      const [existing] = await db.execute('SELECT book_id FROM books WHERE name = ? AND book_id != ?', [name.trim(), id]);
+      if (existing.length > 0) {
+        return res.status(400).json({ error: 'Book name already exists' });
+      }
+      
       const [updateResult] = await db.execute(
         'UPDATE books SET name = ?, price = ?, author = ? WHERE book_id = ?',
-        [name, price || 0, author || '', id]
+        [name.trim(), price || 0, author || '', id]
       );
       
       if (updateResult.affectedRows === 0) {
@@ -89,7 +101,7 @@ const bookController = {
       
       res.json({ message: 'Book information updated successfully' });
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      next(err);
     }
   },
 

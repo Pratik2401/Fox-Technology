@@ -37,6 +37,7 @@ function renderMembersTable() {
         return;
     }
 
+    members.sort((a, b) => a.member_id - b.member_id);
     members.forEach(member => {
                 const $row = $($('#member_row_template').html());
                 const lostAmount = member.lost_book_fee_amount || 0;
@@ -125,8 +126,9 @@ function saveMember() {
         window.location.reload();
       }, 1500);
     },
-    error: function() {
-      Swal.fire('Error!', 'Error saving member', 'error');
+    error: function(xhr) {
+      const errorMsg = xhr.responseJSON?.error || 'Error saving member';
+      Swal.fire('Error!', errorMsg, 'error');
     }
   });
 }
@@ -144,7 +146,7 @@ function editMember(id) {
       $('#member_phone').val(member.phone || '');
       $('#member_address').val(member.address || '');
       $('#membership_fee').val(member.membership_fee || '');
-      // Show form after populating data
+
       $('#add_form').show();
     },
     error: function(xhr, status, error) {
@@ -176,8 +178,9 @@ function toggleFeeStatus(id, currentStatus) {
           Swal.fire('Success!', `Fee status updated to ${action} successfully!`, 'success');
           loadMembers();
         },
-        error: function() {
-          Swal.fire('Error!', 'Error updating fee status', 'error');
+        error: function(xhr) {
+          const errorMsg = xhr.responseJSON?.error || 'Error updating fee status';
+          Swal.fire('Error!', errorMsg, 'error');
         }
       });
     }

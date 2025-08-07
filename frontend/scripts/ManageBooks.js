@@ -60,6 +60,7 @@ function renderBooksTable(books) {
         return;
     }
 
+    books.sort((a, b) => a.book_id - b.book_id);
     books.forEach(book => {
         const $row = $($('#book_row_template').html());
         let status, statusClass;
@@ -76,7 +77,7 @@ function renderBooksTable(books) {
         }
 
         const paymentStatus = book.payment_status || 'Not Lost';
-        const paymentClass = paymentStatus === 'Pending' ? 'status-pending' : 'status-available';
+        const paymentClass = (paymentStatus === 'Pending') ? 'status-pending' : 'status-available';
 
         $row.find('.book-id').text(book.book_id);
         $row.find('.book-name').text(book.name);
@@ -152,8 +153,9 @@ function saveBook() {
             hideAddForm();
             loadBooks();
         },
-        error: function() {
-            Swal.fire('Error!', 'Error saving book', 'error');
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error saving book';
+            Swal.fire('Error!', errorMsg, 'error');
         }
     });
 }
@@ -204,8 +206,8 @@ function viewBookDetails(id) {
             }
 
             const paymentStatus = book.payment_status || 'Not Lost';
-            const paymentClass = paymentStatus === 'Pending' ? 'text-warning' : 'text-success';
-            const paymentIcon = paymentStatus === 'Pending' ? 'clock-fill' : 'check-circle-fill';
+            const paymentClass = (paymentStatus === 'Pending') ? 'text-warning' : 'text-success';
+            const paymentIcon = (paymentStatus === 'Pending') ? 'clock-fill' : 'check-circle-fill';
 
             const detailsHtml = `
                 <div class="row g-3">
@@ -322,6 +324,7 @@ function renderBooksTable(books) {
         return;
     }
 
+    books.sort((a, b) => a.book_id - b.book_id);
     books.forEach(book => {
         const $row = $($('#book_row_template').html());
         let status, statusClass;
@@ -336,7 +339,7 @@ function renderBooksTable(books) {
             statusClass = 'text-success';
         }
         const paymentStatus = book.payment_status || 'Not Lost';
-        const paymentClass = paymentStatus === 'Pending' ? 'text-warning' : 'text-success';
+        const paymentClass = (paymentStatus === 'Pending') ? 'text-warning' : 'text-success';
 
         $row.find('.book-id').text(book.book_id);
         $row.find('.book-name').text(book.name);
@@ -387,8 +390,9 @@ function saveBook() {
                 window.location.reload();
             }, 1500);
         },
-        error: function() {
-            Swal.fire('Error!', 'Error saving book', 'error');
+        error: function(xhr) {
+            const errorMsg = xhr.responseJSON ? xhr.responseJSON.error : 'Error saving book';
+            Swal.fire('Error!', errorMsg, 'error');
         }
     });
 }
@@ -434,7 +438,7 @@ function viewBookDetails(id) {
             }
 
             const paymentStatus = book.payment_status || 'Not Lost';
-            const paymentClass = paymentStatus === 'Pending' ? 'text-warning' : 'text-success';
+            const paymentClass = (paymentStatus === 'Pending') ? 'text-warning' : 'text-success';
 
             const detailsHtml = `
         <div class="row">

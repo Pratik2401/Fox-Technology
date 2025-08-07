@@ -6,7 +6,7 @@ const memberController = {
    */
   async getAll(req, res) {
     try {
-      const [data] = await db.execute('SELECT * FROM members ORDER BY member_id DESC');
+      const [data] = await db.execute('SELECT * FROM members ORDER BY member_id ASC');
       res.json(data);
     } catch (err) {
       res.status(500).json({ error: err.message });
@@ -89,9 +89,23 @@ const memberController = {
         return res.status(400).json({ error: 'Membership fee must be valid positive number' });
       }
 
+      // Check for duplicate email
+      const [existingEmail] = await db.execute('SELECT member_id FROM members WHERE email = ?', [email.trim()]);
+      if (existingEmail.length > 0) {
+        return res.status(400).json({ error: 'Email address already exists' });
+      }
+      
+      // Check for duplicate phone if provided
+      if (phone && phone.trim()) {
+        const [existingPhone] = await db.execute('SELECT member_id FROM members WHERE phone = ?', [phone.trim()]);
+        if (existingPhone.length > 0) {
+          return res.status(400).json({ error: 'Phone number already exists' });
+        }
+      }
+
       const [insertResult] = await db.execute(
         'INSERT INTO members (name, email, phone, address, register_date, membership_fee, fee_paid_status) VALUES (?, ?, ?, ?, CURRENT_TIMESTAMP, ?, 0)',
-        [name, email, phone, address, membership_fee || 0]
+        [name.trim(), email.trim(), phone?.trim() || null, address?.trim() || null, membership_fee || 0]
       );
       res.status(201).json({ id: insertResult.insertId });
     } catch (err) {
@@ -109,6 +123,20 @@ const memberController = {
 
       if (!name || !email) {
         return res.status(400).json({ error: 'Name and email are required fields' });
+      }
+
+      // Check for duplicate email (excluding current member)
+      const [existingEmail] = await db.execute('SELECT member_id FROM members WHERE email = ? AND member_id != ?', [email.trim(), id]);
+      if (existingEmail.length > 0) {
+        return res.status(400).json({ error: 'Email address already exists' });
+      }
+      
+      // Check for duplicate phone if provided (excluding current member)
+      if (phone && phone.trim()) {
+        const [existingPhone] = await db.execute('SELECT member_id FROM members WHERE phone = ? AND member_id != ?', [phone.trim(), id]);
+        if (existingPhone.length > 0) {
+          return res.status(400).json({ error: 'Phone number already exists' });
+        }
       }
 
       const [updateResult] = await db.execute(
